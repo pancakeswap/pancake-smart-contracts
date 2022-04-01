@@ -1,0 +1,21 @@
+{
+  "name": "ifo",
+  "version": "2.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "test:coverage": "npx hardhat coverage",
+    "test:size-contracts": "npx hardhat size-contracts"
+  },
+  "dependencies": {
+    "bsc-library": "1.0.0",
+    "profile-nft-gamification": "2.0.0",
+    "pancake-cake-vault": "1.0.0"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^3.2.0"
+  }
+}

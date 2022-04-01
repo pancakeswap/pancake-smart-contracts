@@ -1,0 +1,25 @@
+{
+  "name": "profile-nft-gamification",
+  "version": "2.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "compile:watch": "npx hardhat watch compile",
+    "deploy:testnet": "npx hardhat run --network testnet scripts/deploy.ts",
+    "deploy:mainnet": "npx hardhat run --network mainnet scripts/deploy.ts",
+    "test": "npx hardhat test",
+    "test:coverage": "npx hardhat coverage",
+    "test:size-contracts": "npx hardhat size-contracts",
+    "test:watch": "npx hardhat watch test"
+  },
+  "dependencies": {
+    "bsc-library": "1.0.0",
+    "pancake-cake-vault": "1.0.0",
+    "predictions": "1.0.1"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^3.2.0"
+  }
+}

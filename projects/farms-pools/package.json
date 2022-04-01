@@ -1,0 +1,21 @@
+{
+  "name": "farms-pools",
+  "version": "1.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "deploy:testnet": "npx hardhat run --network testnet scripts/deploy.ts",
+    "deploy:mainnet": "npx hardhat run --network mainnet scripts/deploy.ts",
+    "test": "npx hardhat test",
+    "test:coverage": "npx hardhat coverage",
+    "test:size-contracts": "npx hardhat size-contracts"
+  },
+  "dependencies": {
+    "bsc-library": "1.0.0"
+  },
+  "devDependencies": {
+    "@openzeppelin/contracts": "^3.2.0"
+  }
+}
