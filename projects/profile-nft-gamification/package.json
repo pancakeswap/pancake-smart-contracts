@@ -14,12 +14,11 @@
     "test:size-contracts": "npx hardhat size-contracts",
     "test:watch": "npx hardhat watch test"
   },
-  "dependencies": {
-    "bsc-library": "1.0.0",
-    "pancake-cake-vault": "1.0.0",
-    "predictions": "1.0.1"
-  },
   "devDependencies": {
-    "@openzeppelin/contracts": "^3.2.0"
+    "@openzeppelin/contracts": "^3.2.0",
+    "bsc-library": "file:../bsc-library",
+    "pancake-cake-vault": "file:../cake-vault",
+    "lottery": "file:../lottery",
+    "predictions": "file:../predictions/v1"
   }
 }

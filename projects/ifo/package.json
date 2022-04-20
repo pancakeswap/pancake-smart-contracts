@@ -10,12 +10,10 @@
     "test:coverage": "npx hardhat coverage",
     "test:size-contracts": "npx hardhat size-contracts"
   },
-  "dependencies": {
-    "bsc-library": "1.0.0",
-    "profile-nft-gamification": "2.0.0",
-    "pancake-cake-vault": "1.0.0"
-  },
   "devDependencies": {
-    "@openzeppelin/contracts": "^3.2.0"
+    "@openzeppelin/contracts": "^3.2.0",
+    "bsc-library": "file:../bsc-library",
+    "profile-nft-gamification": "file:../profile-nft-gamification",
+    "pancake-cake-vault": "file:../cake-vault"
   }
 }
