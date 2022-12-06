@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity =0.6.6;
+pragma solidity >=0.8.13;
 
 import '@uniswap/lib/contracts/libraries/TransferHelper.sol';
 
@@ -21,7 +21,7 @@ contract PancakeRouter is IPancakeRouter02 {
         _;
     }
 
-    constructor(address _factory, address _WETH) public {
+    constructor(address _factory, address _WETH) {
         factory = _factory;
         WETH = _WETH;
     }
@@ -178,7 +178,7 @@ contract PancakeRouter is IPancakeRouter02 {
         bytes32 s
     ) external virtual override returns (uint256 amountA, uint256 amountB) {
         address pair = PancakeLibrary.pairFor(factory, tokenA, tokenB);
-        uint256 value = approveMax ? uint256(-1) : liquidity;
+        uint256 value = approveMax ? uint256(int(-1)) : liquidity;
         IPancakePair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountA, amountB) = removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline);
     }
@@ -196,7 +196,7 @@ contract PancakeRouter is IPancakeRouter02 {
         bytes32 s
     ) external virtual override returns (uint256 amountToken, uint256 amountETH) {
         address pair = PancakeLibrary.pairFor(factory, token, WETH);
-        uint256 value = approveMax ? uint256(-1) : liquidity;
+        uint256 value = approveMax ? uint256(int(-1)) : liquidity;
         IPancakePair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         (amountToken, amountETH) = removeLiquidityETH(token, liquidity, amountTokenMin, amountETHMin, to, deadline);
     }
@@ -229,7 +229,7 @@ contract PancakeRouter is IPancakeRouter02 {
         bytes32 s
     ) external virtual override returns (uint256 amountETH) {
         address pair = PancakeLibrary.pairFor(factory, token, WETH);
-        uint256 value = approveMax ? uint256(-1) : liquidity;
+        uint256 value = approveMax ? uint256(int(-1)) : liquidity;
         IPancakePair(pair).permit(msg.sender, address(this), value, deadline, v, r, s);
         amountETH = removeLiquidityETHSupportingFeeOnTransferTokens(
             token,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.5.0;
+pragma solidity >=0.8.13;
 
 interface IPancakeERC20 {
     event Approval(address indexed owner, address indexed spender, uint256 value);

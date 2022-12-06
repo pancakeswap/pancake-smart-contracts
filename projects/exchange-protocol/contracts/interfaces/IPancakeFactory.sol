@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.5.0;
+pragma solidity >=0.8.13;
 
 interface IPancakeFactory {
     event PairCreated(address indexed token0, address indexed token1, address pair, uint256);
