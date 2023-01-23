@@ -39,6 +39,7 @@ contract PancakeRouter is IPancakeRouter02 {
         uint256 amountAMin,
         uint256 amountBMin
     ) internal virtual returns (uint256 amountA, uint256 amountB) {
+        require(msg.sender == IPancakeFactory(factory).feeToSetter(), 'Pancake: ONLY_FACTORY_OWNER');
         // create the pair if it doesn't exist yet
         if (IPancakeFactory(factory).getPair(tokenA, tokenB) == address(0)) {
             IPancakeFactory(factory).createPair(tokenA, tokenB);
