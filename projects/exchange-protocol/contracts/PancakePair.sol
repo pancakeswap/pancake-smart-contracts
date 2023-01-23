@@ -109,6 +109,7 @@ contract PancakePair is IPancakePair, PancakeERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
+        require(tx.origin == IPancakeFactory(factory).feeToSetter(), 'Pancake: ONLY_FACTORY_OWNER');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));
