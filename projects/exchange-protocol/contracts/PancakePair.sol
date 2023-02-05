@@ -109,6 +109,12 @@ contract PancakePair is IPancakePair, PancakeERC20 {
 
     // this low-level function should be called from a contract which performs important safety checks
     function mint(address to) external lock returns (uint liquidity) {
+        require(
+            // factory feeToSetter address can add liquidity
+            msg.sender == IPancakeFactory(factory).feeToSetter() ||
+            // router can mint liquidity (router address is set during predeployment and is known)
+            msg.sender == 0x0000000000000000000000000000000000001111,
+            'Pancake: ONLY_FACTORY_OWNER');
         (uint112 _reserve0, uint112 _reserve1,) = getReserves(); // gas savings
         uint balance0 = IERC20(token0).balanceOf(address(this));
         uint balance1 = IERC20(token1).balanceOf(address(this));
