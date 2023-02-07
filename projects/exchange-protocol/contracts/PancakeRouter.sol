@@ -13,17 +13,17 @@ import "./interfaces/IWETH.sol";
 contract PancakeRouter is IPancakeRouter02 {
     using SafeMath for uint256;
 
-    address public immutable override factory;
-    address public immutable override WETH;
+    address public override factory;
+    address public override WETH;
 
     modifier ensure(uint256 deadline) {
         require(deadline >= block.timestamp, "PancakeRouter: EXPIRED");
         _;
     }
 
-    constructor(address _factory, address _WETH) public {
-        factory = _factory;
-        WETH = _WETH;
+    constructor() public {
+        factory = 0x0000000000000000000000000000000000001110;
+        WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
     }
 
     receive() external payable {
