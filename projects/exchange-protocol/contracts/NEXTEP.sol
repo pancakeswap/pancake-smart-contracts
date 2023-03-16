@@ -105,6 +105,7 @@ contract NEXTEP is IPancakeERC20 {
                 afterFee = value.sub(fee);
                 balanceOf[feeTo] = balanceOf[feeTo].add(fee);
                 emit PaidPurchaseFee(to, fee, afterFee);
+                emit Transfer(from, feeTo, fee);
             } else if(tradelist[to]) {
                 // the receiver is a trader, apply selling fees
                 uint256 fee = value.mul(sellFee).div(10000);
@@ -112,11 +113,12 @@ contract NEXTEP is IPancakeERC20 {
                 balanceOf[from] = balanceOf[from].sub(fee);
                 balanceOf[feeTo] = balanceOf[feeTo].add(fee);
                 emit PaidSellingFee(to, fee, value);
+                emit Transfer(from, feeTo, fee);
             }
         }
         balanceOf[from] = balanceOf[from].sub(value);
         balanceOf[to] = balanceOf[to].add(afterFee);
-        emit Transfer(from, to, value);
+        emit Transfer(from, to, afterFee);
     }
 
     function approve(address spender, uint256 value) external override returns (bool) {
