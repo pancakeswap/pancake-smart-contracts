@@ -14,8 +14,6 @@ contract RewardsDistributor is AccessControl {
     bytes32 public constant ORACLE_ROLE = keccak256("ORACLE");
     /// The validator triggers the distributions
     bytes32 public constant VALIDATOR_ROLE = keccak256("VALIDATOR");
-    /// Distributions can only be triggered every 28 days maximum
-    uint256 constant MAX_CALL_FREQUENCY = 28 days;
     /// Permil share of the rewards to distribute (1000 = 100%)
     uint256 public rewardShare1000 = 800;
     /// Address of the treasury the remaining tokens will be sent to
@@ -70,11 +68,10 @@ contract RewardsDistributor is AccessControl {
     /**
         Distribute NEXTEP tokens to current NFT Reward holders
         Only one transfer per holder is operated even if the holder has more than one token
-        Can only be called by VALIDATOR at a maximum frequency of 28 days
+        Can only be called by VALIDATOR
     */
     function validate() external {
         require(hasRole(VALIDATOR_ROLE, msg.sender), "RewardsDistributor: FORBIDDEN");
-        require(block.timestamp - MAX_CALL_FREQUENCY >= lastCall, "RewardsDistributor: TOO SOON");
         uint256 nextepBalance = nextep.balanceOf(address(this));
         uint256 rewardShare = nextepBalance * rewardShare1000 / 1000;
         uint256 rewardPerUnit = rewardShare / 150;

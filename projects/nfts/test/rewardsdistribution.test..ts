@@ -75,13 +75,6 @@ contract("RewardDistributor", ([alice, bob, carol, all]) => {
       expect((await erc20Instance.balanceOf(distributorInstance.address)).toString()).to.be.equal("0");
     })
 
-    it("next distribution should fail because 28 days havent passed yet", async function () {
-      await expectRevert(distributorInstance.validate(), "RewardsDistributor: TOO SOON");
-
-      await network.provider.send('evm_increaseTime', [3600*24*90]); // increase time by 90 days
-      await network.provider.send('evm_mine', []);
-    })
-
     it("distribute when one of the holders is not bob should work", async function () {
       await distributorInstance.update([15], [carol]);
 
@@ -115,9 +108,6 @@ contract("RewardDistributor", ([alice, bob, carol, all]) => {
         console.log(wallet.address)
       }
       await distributorInstance.update(ids, holders);
-
-      await network.provider.send('evm_increaseTime', [3600*24*90]); // increase time by 90 days
-      await network.provider.send('evm_mine', []);
     });
 
     it("distribute to 150 unique addresses", async function () {
