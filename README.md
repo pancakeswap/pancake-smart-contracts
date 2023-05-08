@@ -4,6 +4,7 @@ This repo contains all the contracts used in IceCreamSwap. It is divided in inde
 
 ## Existing projects
 
+
 | Project name                                  | Description                                                                           | Solidity version(s) |
 |-----------------------------------------------|---------------------------------------------------------------------------------------|---------------------|
 | [Bridge](./projects/bridge)                   | Based on ChainSafe ChainBridge with modifications like an improved fee system         | 0.8.11              |
