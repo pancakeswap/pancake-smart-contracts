@@ -12,7 +12,6 @@ This repo contains all the contracts used in IceCreamSwap. It is divided in inde
 | [Launchpad](./projects/launchpad)             | Based on PSI-Passive-Income launchpad.                                                | 0.8.17              |
 | [Liquidity Farms](./projects/liquidity-farms) | Based on SushiSwap's MasterChefV2.                                                    | 0.6.12              |
 | [Multicall](./projects/multicall)             | Multicall smart contract to batch RPC calls                                           | 0.8.12              |
-| [Soulbound](./projects/soulbound)             | Non transferable NFTs for on chain attestation like KYC or audit                      | 0.8.17              |
 | [Staked Core (SCORE)](./projects/staked-core) | auto compounding staked core, comparable to Lido's wstETH                             | 0.8.17              |
 | [Staking](./projects/staking)                 | Single token staking                                                                  | 0.8.17              |
 
