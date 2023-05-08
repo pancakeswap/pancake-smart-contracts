@@ -10,10 +10,11 @@
   "author": "PancakeSwap",
   "license": "MIT",
   "scripts": {
-    "format:check": "prettier --check 'projects/**/*.{js,ts,sol}'",
-    "format:write": "prettier --write 'projects/**/*.{js,ts,sol}'",
+    "format:check": "prettier --check ./**/*.{js,ts,sol}",
+    "format:write": "prettier --write ./**/*.{js,ts,sol}",
     "prepare": "husky install",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "compile": "lerna run compile"
   },
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",
@@ -32,7 +33,7 @@
     "eslint": "^7.22.0",
     "ethereum-waffle": "^3.2.1",
     "ethers": "^5.0.23",
-    "hardhat": "^2.4.1",
+    "hardhat": "^2.14.0",
     "hardhat-abi-exporter": "2.0.6",
     "hardhat-contract-sizer": "^2.0.2",
     "hardhat-watcher": "^2.1.1",
