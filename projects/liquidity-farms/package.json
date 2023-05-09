@@ -12,9 +12,6 @@
     "test:coverage": "npx hardhat coverage",
     "test:size-contracts": "npx hardhat size-contracts"
   },
-  "dependencies": {
-    "bsc-library": "1.0.0"
-  },
   "devDependencies": {
     "@openzeppelin/contracts": "3.4.1"
   }
