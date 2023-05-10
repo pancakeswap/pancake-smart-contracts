@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^4.2.0",
+    "@uniswap/v2-core": "1.0.1",
     "@uniswap/lib": "4.0.1-alpha"
   }
 }
