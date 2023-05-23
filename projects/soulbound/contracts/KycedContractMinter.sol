@@ -8,8 +8,8 @@ import "./KycedContract.sol";
 
 contract KycedContractMinter is Ownable {
     KycedContract kycedContract;
-    IERC20 feeToken;
-    uint256 feeAmount;
+    IERC20 public feeToken;
+    uint256 public feeAmount;
     address feeReceiver;
 
     constructor(
