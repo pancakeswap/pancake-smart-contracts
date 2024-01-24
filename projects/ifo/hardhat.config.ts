@@ -6,6 +6,7 @@ import "hardhat-abi-exporter";
 import "hardhat-contract-sizer";
 import "solidity-coverage";
 import "dotenv/config";
+import "@nomicfoundation/hardhat-verify";
 
 const bscTestnet: NetworkUserConfig = {
   url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
@@ -19,15 +20,27 @@ const bscMainnet: NetworkUserConfig = {
   accounts: [process.env.KEY_MAINNET!],
 };
 
+const lineaTestnet: NetworkUserConfig = {
+  url: "https://rpc.goerli.linea.build",
+  chainId: 59140,
+  accounts: [process.env.KEY_TESTNET!],
+};
+
+const lineaMainnet: NetworkUserConfig = {
+  url: "https://rpc.linea.build",
+  chainId: 59144,
+  accounts: [process.env.KEY_MAINNET!],
+};
+
 const config: HardhatUserConfig = {
-  defaultNetwork: "hardhat",
+  defaultNetwork: "testnet",
   networks: {
     hardhat: {},
-    // testnet: bscTestnet,
-    // mainnet: bscMainnet,
+    testnet: lineaTestnet,
+    // mainnet: lineaMainnet,
   },
   solidity: {
-    version: "0.6.12",
+    version: "0.8.15",
     settings: {
       optimizer: {
         enabled: true,
@@ -45,6 +58,26 @@ const config: HardhatUserConfig = {
     path: "./data/abi",
     clear: true,
     flat: false,
+  },
+  etherscan: {
+    apiKey: {
+      testnet: process.env.LINEASCAN_API_KEY!,
+    },
+    customChains: [
+      {
+        network: "testnet",
+        chainId: 59140,
+        urls: {
+          apiURL: "https://api-testnet.lineascan.build/api",
+          browserURL: "https://goerli.lineascan.build/address",
+        },
+      },
+    ],
+  },
+  sourcify: {
+    // Disabled by default
+    // Doesn't need an API key
+    enabled: true,
   },
 };
 

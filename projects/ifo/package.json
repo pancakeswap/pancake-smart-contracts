@@ -16,6 +16,7 @@
     "pancake-cake-vault": "1.0.0"
   },
   "devDependencies": {
-    "@openzeppelin/contracts": "^3.2.0"
+    "@nomicfoundation/hardhat-verify": "^2.0.2",
+    "@openzeppelin/contracts": "^4.9.5"
   }
 }

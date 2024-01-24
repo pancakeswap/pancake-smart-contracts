@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.15;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-
-import "profile-nft-gamification/contracts/PancakeProfile.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
 import "./interfaces/IIFOV2.sol";
 
@@ -17,7 +15,6 @@ import "./interfaces/IIFOV2.sol";
  * other PancakeProfile requirements.
  */
 contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     // The LP token used
@@ -27,7 +24,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
     IERC20 public offeringToken;
 
     // PancakeProfile
-    PancakeProfile public pancakeProfile;
+    // PancakeProfile public pancakeProfile;
 
     // Number of pools
     uint8 public constant numberPools = 2;
@@ -64,6 +61,8 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         bool hasTax; // tax on the overflow (if any, it works with _calculateTaxOverflow)
         uint256 totalAmountPool; // total amount pool deposited (in LP tokens)
         uint256 sumTaxesOverflow; // total taxes collected (starts at 0, increases with each harvest if overflow)
+        bool hasWhitelisting; // if the pool has a whitelisting
+        bytes32 root; // merkle root
     }
 
     // Struct that contains each user information for both pools
@@ -105,7 +104,6 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
      * @dev It can only be called once.
      * @param _lpToken: the LP token used
      * @param _offeringToken: the token that is offered for the IFO
-     * @param _pancakeProfileAddress: the address of the PancakeProfile
      * @param _startBlock: the start block for the IFO
      * @param _endBlock: the end block for the IFO
      * @param _adminAddress: the admin address for handling tokens
@@ -113,18 +111,16 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
     constructor(
         address _lpToken,
         address _offeringToken,
-        address _pancakeProfileAddress,
         uint256 _startBlock,
         uint256 _endBlock,
         address _adminAddress
-    ) public {
+    ) Ownable() ReentrancyGuard() {
         require(IERC20(_lpToken).totalSupply() >= 0);
         require(IERC20(_offeringToken).totalSupply() >= 0);
         require(_lpToken != _offeringToken, "Operations: Tokens must be be different");
 
         lpToken = IERC20(_lpToken);
         offeringToken = IERC20(_offeringToken);
-        pancakeProfile = PancakeProfile(_pancakeProfileAddress);
         startBlock = _startBlock;
         endBlock = _endBlock;
         transferOwnership(_adminAddress);
@@ -135,9 +131,18 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
      * @param _amount: the number of LP token used (18 decimals)
      * @param _pid: pool id
      */
-    function depositPool(uint256 _amount, uint8 _pid) external override nonReentrant notContract {
-        // Checks whether the user has an active profile
-        require(pancakeProfile.getUserStatus(msg.sender), "Deposit: Must have an active profile");
+    function depositPool(
+        uint256 _amount,
+        uint8 _pid,
+        bytes32[] memory proof
+    ) external nonReentrant notContract {
+        // Checks whether the user is in a whitelist(merkle tree)
+        if (_poolInformation[_pid].hasWhitelisting) {
+            require(_poolInformation[_pid].root != bytes32(0), "Deposit: Merkle root not set");
+            bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(msg.sender))));
+            bytes32 root = _poolInformation[_pid].root;
+            require(MerkleProof.verify(proof, root, leaf), "Invalid proof");
+        }
 
         // Checks whether the pool id is valid
         require(_pid < numberPools, "Deposit: Non valid pool id");
@@ -161,7 +166,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         lpToken.safeTransferFrom(address(msg.sender), address(this), _amount);
 
         // Update the user status
-        _userInfo[msg.sender][_pid].amountPool = _userInfo[msg.sender][_pid].amountPool.add(_amount);
+        _userInfo[msg.sender][_pid].amountPool = _userInfo[msg.sender][_pid].amountPool + _amount;
 
         // Check if the pool has a limit per user
         if (_poolInformation[_pid].limitPerUserInLP > 0) {
@@ -173,7 +178,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         }
 
         // Updates the totalAmount for pool
-        _poolInformation[_pid].totalAmountPool = _poolInformation[_pid].totalAmountPool.add(_amount);
+        _poolInformation[_pid].totalAmountPool = _poolInformation[_pid].totalAmountPool + _amount;
 
         emit Deposit(msg.sender, _amount, _pid);
     }
@@ -213,7 +218,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
 
         // Increment the sumTaxesOverflow
         if (userTaxOverflow > 0) {
-            _poolInformation[_pid].sumTaxesOverflow = _poolInformation[_pid].sumTaxesOverflow.add(userTaxOverflow);
+            _poolInformation[_pid].sumTaxesOverflow = _poolInformation[_pid].sumTaxesOverflow + userTaxOverflow;
         }
 
         // Transfer these tokens back to the user if quantity > 0
@@ -234,7 +239,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
      * @param _offerAmount: the number of offering amount to withdraw
      * @dev This function is only callable by admin.
      */
-    function finalWithdraw(uint256 _lpAmount, uint256 _offerAmount) external override onlyOwner {
+    function finalWithdraw(uint256 _lpAmount, uint256 _offerAmount) external onlyOwner {
         require(_lpAmount <= lpToken.balanceOf(address(this)), "Operations: Not enough LP tokens");
         require(_offerAmount <= offeringToken.balanceOf(address(this)), "Operations: Not enough offering tokens");
 
@@ -278,8 +283,10 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         uint256 _raisingAmountPool,
         uint256 _limitPerUserInLP,
         bool _hasTax,
-        uint8 _pid
-    ) external override onlyOwner {
+        uint8 _pid,
+        bool _hasWhitelisting,
+        bytes32 _root
+    ) external onlyOwner {
         require(block.number < startBlock, "Operations: IFO has started");
         require(_pid < numberPools, "Operations: Pool does not exist");
 
@@ -287,6 +294,8 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         _poolInformation[_pid].raisingAmountPool = _raisingAmountPool;
         _poolInformation[_pid].limitPerUserInLP = _limitPerUserInLP;
         _poolInformation[_pid].hasTax = _hasTax;
+        _poolInformation[_pid].hasWhitelisting = _hasWhitelisting;
+        _poolInformation[_pid].root = _root;
 
         emit PoolParametersSet(_offeringAmountPool, _raisingAmountPool, _pid);
     }
@@ -302,7 +311,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         uint256 _campaignId,
         uint256 _numberPoints,
         uint256 _thresholdPoints
-    ) external override onlyOwner {
+    ) external onlyOwner {
         require(block.number < endBlock, "Operations: IFO has ended");
         numberPoints = _numberPoints;
         campaignId = _campaignId;
@@ -341,7 +350,6 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
     function viewPoolInformation(uint256 _pid)
         external
         view
-        override
         returns (
             uint256,
             uint256,
@@ -367,7 +375,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
      * @param _pid: poolId
      * @return It returns the tax percentage
      */
-    function viewPoolTaxRateOverflow(uint256 _pid) external view override returns (uint256) {
+    function viewPoolTaxRateOverflow(uint256 _pid) external view returns (uint256) {
         if (!_poolInformation[_pid].hasTax) {
             return 0;
         } else {
@@ -382,12 +390,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
      * @param _pids[]: array of pids
      * @return
      */
-    function viewUserAllocationPools(address _user, uint8[] calldata _pids)
-        external
-        view
-        override
-        returns (uint256[] memory)
-    {
+    function viewUserAllocationPools(address _user, uint8[] calldata _pids) external view returns (uint256[] memory) {
         uint256[] memory allocationPools = new uint256[](_pids.length);
         for (uint8 i = 0; i < _pids.length; i++) {
             allocationPools[i] = _getUserAllocationPool(_user, _pids[i]);
@@ -403,7 +406,6 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
     function viewUserInfo(address _user, uint8[] calldata _pids)
         external
         view
-        override
         returns (uint256[] memory, bool[] memory)
     {
         uint256[] memory amountPools = new uint256[](_pids.length);
@@ -424,7 +426,6 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
     function viewUserOfferingAndRefundingAmountsForPools(address _user, uint8[] calldata _pids)
         external
         view
-        override
         returns (uint256[3][] memory)
     {
         uint256[3][] memory amountPools = new uint256[3][](_pids.length);
@@ -455,12 +456,12 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         if (!_hasClaimedPoints[_user]) {
             uint256 sumPools;
             for (uint8 i = 0; i < numberPools; i++) {
-                sumPools = sumPools.add(_userInfo[msg.sender][i].amountPool);
+                sumPools = sumPools + _userInfo[msg.sender][i].amountPool;
             }
             if (sumPools > thresholdPoints) {
                 _hasClaimedPoints[_user] = true;
                 // Increase user points
-                pancakeProfile.increaseUserPoints(msg.sender, numberPoints, campaignId);
+                // pancakeProfile.increaseUserPoints(msg.sender, numberPoints, campaignId);
             }
         }
     }
@@ -475,7 +476,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
         pure
         returns (uint256)
     {
-        uint256 ratioOverflow = _totalAmountPool.div(_raisingAmountPool);
+        uint256 ratioOverflow = _totalAmountPool / _raisingAmountPool;
 
         if (ratioOverflow >= 1500) {
             return 500000000; // 0.05%
@@ -519,13 +520,13 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
             uint256 allocation = _getUserAllocationPool(_user, _pid);
 
             // Calculate the offering amount for the user based on the offeringAmount for the pool
-            userOfferingAmount = _poolInformation[_pid].offeringAmountPool.mul(allocation).div(1e12);
+            userOfferingAmount = (_poolInformation[_pid].offeringAmountPool * allocation) / (1e12);
 
             // Calculate the payAmount
-            uint256 payAmount = _poolInformation[_pid].raisingAmountPool.mul(allocation).div(1e12);
+            uint256 payAmount = (_poolInformation[_pid].raisingAmountPool * allocation) / (1e12);
 
             // Calculate the pre-tax refunding amount
-            userRefundingAmount = _userInfo[_user][_pid].amountPool.sub(payAmount);
+            userRefundingAmount = _userInfo[_user][_pid].amountPool - payAmount;
 
             // Retrieve the tax rate
             if (_poolInformation[_pid].hasTax) {
@@ -535,18 +536,18 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
                 );
 
                 // Calculate the final taxAmount
-                taxAmount = userRefundingAmount.mul(taxOverflow).div(1e12);
+                taxAmount = (userRefundingAmount * (taxOverflow)) / (1e12);
 
                 // Adjust the refunding amount
-                userRefundingAmount = userRefundingAmount.sub(taxAmount);
+                userRefundingAmount = userRefundingAmount - (taxAmount);
             }
         } else {
             userRefundingAmount = 0;
             taxAmount = 0;
             // _userInfo[_user] / (raisingAmount / offeringAmount)
-            userOfferingAmount = _userInfo[_user][_pid].amountPool.mul(_poolInformation[_pid].offeringAmountPool).div(
-                _poolInformation[_pid].raisingAmountPool
-            );
+            userOfferingAmount =
+                (_userInfo[_user][_pid].amountPool * _poolInformation[_pid].offeringAmountPool) /
+                (_poolInformation[_pid].raisingAmountPool);
         }
         return (userOfferingAmount, userRefundingAmount, taxAmount);
     }
@@ -560,7 +561,7 @@ contract IFOV2 is IIFOV2, ReentrancyGuard, Ownable {
      */
     function _getUserAllocationPool(address _user, uint8 _pid) internal view returns (uint256) {
         if (_poolInformation[_pid].totalAmountPool > 0) {
-            return _userInfo[_user][_pid].amountPool.mul(1e18).div(_poolInformation[_pid].totalAmountPool.mul(1e6));
+            return (_userInfo[_user][_pid].amountPool * (1e18)) / (_poolInformation[_pid].totalAmountPool * (1e6));
         } else {
             return 0;
         }

@@ -13,11 +13,10 @@ const main = async () => {
 
   const IFOV2 = await ethers.getContractFactory("IFOV2");
 
-  if (name == "mainnet") {
+  if (name === "mainnet") {
     const ifoV2 = await IFOV2.deploy(
       config.LPToken[name],
       config.OfferingToken[name],
-      config.PancakeProfile[name],
       config.StartBlock[name],
       config.EndBlock[name],
       config.AdminAddress[name]
@@ -25,9 +24,9 @@ const main = async () => {
 
     await ifoV2.deployed();
     console.log("IFOV2 deployed to:", ifoV2.address);
-  } else if (name == "testnet") {
-    const MockBEP20 = await ethers.getContractFactory("MockBEP20");
-    const offeringToken = await MockBEP20.deploy("Offering Coin", "OC", parseEther("10000000"));
+  } else if (name === "testnet") {
+    const MockBEP20 = await ethers.getContractFactory("MockERC20");
+    const offeringToken = await MockBEP20.deploy("HiYield Test Offering Coin", "HTOC", parseEther("10000000"));
 
     await offeringToken.deployed();
     console.log("OC32 token deployed to:", offeringToken.address);
@@ -35,7 +34,6 @@ const main = async () => {
     const ifoV2 = await IFOV2.deploy(
       config.LPToken[name],
       offeringToken.address,
-      config.PancakeProfile[name],
       config.StartBlock[name],
       config.EndBlock[name],
       config.AdminAddress[name]

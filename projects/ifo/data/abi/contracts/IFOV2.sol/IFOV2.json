@@ -12,11 +12,6 @@
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "_pancakeProfileAddress",
-        "type": "address"
-      },
-      {
         "internalType": "uint256",
         "name": "_startBlock",
         "type": "uint256"
@@ -241,6 +236,11 @@
         "internalType": "uint8",
         "name": "_pid",
         "type": "uint8"
+      },
+      {
+        "internalType": "bytes32[]",
+        "name": "proof",
+        "type": "bytes32[]"
       }
     ],
     "name": "depositPool",
@@ -358,19 +358,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "pancakeProfile",
-    "outputs": [
-      {
-        "internalType": "contract PancakeProfile",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -421,6 +408,16 @@
         "internalType": "uint8",
         "name": "_pid",
         "type": "uint8"
+      },
+      {
+        "internalType": "bool",
+        "name": "_hasWhitelisting",
+        "type": "bool"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "_root",
+        "type": "bytes32"
       }
     ],
     "name": "setPool",

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.6.12;
+pragma solidity ^0.8.15;
 
 /** @title IIFOV2.
  * @notice It is an interface for IFOV2.sol
@@ -10,7 +10,11 @@ interface IIFOV2 {
      * @param _amount: the number of LP token used (18 decimals)
      * @param _pid: poolId
      */
-    function depositPool(uint256 _amount, uint8 _pid) external;
+    function depositPool(
+        uint256 _amount,
+        uint8 _pid,
+        bytes32[] memory proof
+    ) external;
 
     /**
      * @notice It allows users to harvest from pool
@@ -40,7 +44,9 @@ interface IIFOV2 {
         uint256 _raisingAmountPool,
         uint256 _limitPerUserInLP,
         bool _hasTax,
-        uint8 _pid
+        uint8 _pid,
+        bool _hasWhitelisting,
+        bytes32 _root
     ) external;
 
     /**
