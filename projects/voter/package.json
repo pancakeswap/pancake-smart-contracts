@@ -1,0 +1,26 @@
+{
+    "name": "voter",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "license": "MIT",
+    "scripts": {
+        "build": "yarn compile && npx tsc",
+        "compile": "npx hardhat compile",
+        "clean": "rm -rf dist && npx hardhat clean",
+        "test": "npx hardhat test"
+    },
+    "keywords": [],
+    "author": "",
+    "dependencies": {
+        "@openzeppelin-3.2.0/contracts": "npm:@openzeppelin/contracts@3.2.0",
+        "@openzeppelin/contracts-0.6": "npm:@openzeppelin/contracts@3.4.0",
+        "@openzeppelin/contracts-0.8": "npm:@openzeppelin/contracts@4.4.2",
+        "@openzeppelin/contracts-upgradeable-0.6": "npm:@openzeppelin/contracts-upgradeable@3.4.0",
+        "@openzeppelin/contracts-upgradeable-0.8": "npm:@openzeppelin/contracts-upgradeable@4.4.2",
+        "csv": "^6.3.5"
+    },
+    "lint-staged": {
+        "*.{ts,js}": "eslint -c .eslintrc.json"
+    }
+}
