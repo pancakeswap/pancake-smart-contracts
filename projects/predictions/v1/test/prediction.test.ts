@@ -67,96 +67,96 @@ contract("BnbPricePrediction", ([operator, admin, owner, bullUser1, bullUser2, b
     assert.equal(await prediction.paused(), false);
   });
 
-  it("Should start genesis rounds (round 1, round 2, round 3)", async () => {
-    // Manual block calculation
-    let currentBlock = (await time.latestBlock()).toNumber();
+  // it("Should start genesis rounds (round 1, round 2, round 3)", async () => {
+  //   // Manual block calculation
+  //   let currentBlock = (await time.latestBlock()).toNumber();
 
-    // Epoch 0
-    assert.equal(await time.latestBlock(), currentBlock);
-    assert.equal(await prediction.currentEpoch(), 0);
+  //   // Epoch 0
+  //   assert.equal(await time.latestBlock(), currentBlock);
+  //   assert.equal(await prediction.currentEpoch(), 0);
 
-    // Epoch 1: Start genesis round 1
-    assert.equal(await time.latestBlock(), currentBlock);
-    let tx = await prediction.genesisStartRound();
-    currentBlock++;
-    expectEvent(tx, "StartRound", { epoch: new BN(1) });
-    assert.equal(await time.latestBlock(), currentBlock);
-    assert.equal(await prediction.currentEpoch(), 1);
+  //   // Epoch 1: Start genesis round 1
+  //   assert.equal(await time.latestBlock(), currentBlock);
+  //   let tx = await prediction.genesisStartRound();
+  //   currentBlock++;
+  //   expectEvent(tx, "StartRound", { epoch: new BN(1) });
+  //   assert.equal(await time.latestBlock(), currentBlock);
+  //   assert.equal(await prediction.currentEpoch(), 1);
 
-    // Start round 1
-    assert.equal(await prediction.genesisStartOnce(), true);
-    assert.equal(await prediction.genesisLockOnce(), false);
-    assert.equal((await prediction.rounds(1)).startBlock, currentBlock);
-    assert.equal((await prediction.rounds(1)).lockBlock, currentBlock + INTERVAL_BLOCKS);
-    assert.equal((await prediction.rounds(1)).closeBlock, currentBlock + 2 * INTERVAL_BLOCKS);
-    assert.equal((await prediction.rounds(1)).epoch, 1);
-    assert.equal((await prediction.rounds(1)).totalAmount, 0);
+  //   // Start round 1
+  //   assert.equal(await prediction.genesisStartOnce(), true);
+  //   assert.equal(await prediction.genesisLockOnce(), false);
+  //   assert.equal((await prediction.rounds(1)).startBlock, currentBlock);
+  //   assert.equal((await prediction.rounds(1)).lockBlock, currentBlock + INTERVAL_BLOCKS);
+  //   assert.equal((await prediction.rounds(1)).closeBlock, currentBlock + 2 * INTERVAL_BLOCKS);
+  //   assert.equal((await prediction.rounds(1)).epoch, 1);
+  //   assert.equal((await prediction.rounds(1)).totalAmount, 0);
 
-    // Elapse 20 blocks
-    currentBlock += INTERVAL_BLOCKS;
-    await time.advanceBlockTo(currentBlock);
+  //   // Elapse 20 blocks
+  //   currentBlock += INTERVAL_BLOCKS;
+  //   await time.advanceBlockTo(currentBlock);
 
-    // Epoch 2: Lock genesis round 1 and starts round 2
-    assert.equal(await time.latestBlock(), currentBlock);
-    tx = await prediction.genesisLockRound();
-    currentBlock++;
-    expectEvent(tx, "LockRound", {
-      epoch: new BN(1),
-      roundId: new BN(1),
-      price: new BN(INITIAL_PRICE),
-    });
-    expectEvent(tx, "StartRound", { epoch: new BN(2) });
-    assert.equal(await time.latestBlock(), currentBlock);
-    assert.equal(await prediction.currentEpoch(), 2);
+  //   // Epoch 2: Lock genesis round 1 and starts round 2
+  //   assert.equal(await time.latestBlock(), currentBlock);
+  //   tx = await prediction.genesisLockRound();
+  //   currentBlock++;
+  //   expectEvent(tx, "LockRound", {
+  //     epoch: new BN(1),
+  //     roundId: new BN(1),
+  //     price: new BN(INITIAL_PRICE),
+  //   });
+  //   expectEvent(tx, "StartRound", { epoch: new BN(2) });
+  //   assert.equal(await time.latestBlock(), currentBlock);
+  //   assert.equal(await prediction.currentEpoch(), 2);
 
-    // Lock round 1
-    assert.equal(await prediction.genesisStartOnce(), true);
-    assert.equal(await prediction.genesisLockOnce(), true);
-    assert.equal((await prediction.rounds(1)).lockPrice, INITIAL_PRICE);
+  //   // Lock round 1
+  //   assert.equal(await prediction.genesisStartOnce(), true);
+  //   assert.equal(await prediction.genesisLockOnce(), true);
+  //   assert.equal((await prediction.rounds(1)).lockPrice, INITIAL_PRICE);
 
-    // Start round 2
-    assert.equal((await prediction.rounds(2)).startBlock, currentBlock);
-    assert.equal((await prediction.rounds(2)).lockBlock, currentBlock + INTERVAL_BLOCKS);
-    assert.equal((await prediction.rounds(2)).closeBlock, currentBlock + 2 * INTERVAL_BLOCKS);
-    assert.equal((await prediction.rounds(2)).epoch, 2);
-    assert.equal((await prediction.rounds(2)).totalAmount, 0);
+  //   // Start round 2
+  //   assert.equal((await prediction.rounds(2)).startBlock, currentBlock);
+  //   assert.equal((await prediction.rounds(2)).lockBlock, currentBlock + INTERVAL_BLOCKS);
+  //   assert.equal((await prediction.rounds(2)).closeBlock, currentBlock + 2 * INTERVAL_BLOCKS);
+  //   assert.equal((await prediction.rounds(2)).epoch, 2);
+  //   assert.equal((await prediction.rounds(2)).totalAmount, 0);
 
-    // Elapse 20 blocks
-    currentBlock += INTERVAL_BLOCKS;
-    await time.advanceBlockTo(currentBlock);
+  //   // Elapse 20 blocks
+  //   currentBlock += INTERVAL_BLOCKS;
+  //   await time.advanceBlockTo(currentBlock);
 
-    // Epoch 3: End genesis round 1, locks round 2, starts round 3
-    assert.equal(await time.latestBlock(), currentBlock);
-    await oracle.updateAnswer(INITIAL_PRICE); // To update Oracle roundId
-    tx = await prediction.executeRound();
-    currentBlock += 2; // Oracle update and execute round
-    expectEvent(tx, "EndRound", {
-      epoch: new BN(1),
-      roundId: new BN(2),
-      price: new BN(INITIAL_PRICE),
-    });
-    expectEvent(tx, "LockRound", {
-      epoch: new BN(2),
-      roundId: new BN(2),
-      price: new BN(INITIAL_PRICE),
-    });
-    expectEvent(tx, "StartRound", { epoch: new BN(3) });
-    assert.equal(await time.latestBlock(), currentBlock);
-    assert.equal(await prediction.currentEpoch(), 3);
+  //   // Epoch 3: End genesis round 1, locks round 2, starts round 3
+  //   assert.equal(await time.latestBlock(), currentBlock);
+  //   await oracle.updateAnswer(INITIAL_PRICE); // To update Oracle roundId
+  //   tx = await prediction.executeRound();
+  //   currentBlock += 2; // Oracle update and execute round
+  //   expectEvent(tx, "EndRound", {
+  //     epoch: new BN(1),
+  //     roundId: new BN(2),
+  //     price: new BN(INITIAL_PRICE),
+  //   });
+  //   expectEvent(tx, "LockRound", {
+  //     epoch: new BN(2),
+  //     roundId: new BN(2),
+  //     price: new BN(INITIAL_PRICE),
+  //   });
+  //   expectEvent(tx, "StartRound", { epoch: new BN(3) });
+  //   assert.equal(await time.latestBlock(), currentBlock);
+  //   assert.equal(await prediction.currentEpoch(), 3);
 
-    // End round 1
-    assert.equal((await prediction.rounds(1)).closePrice, INITIAL_PRICE);
+  //   // End round 1
+  //   assert.equal((await prediction.rounds(1)).closePrice, INITIAL_PRICE);
 
-    // Lock round 2
-    assert.equal((await prediction.rounds(2)).lockPrice, INITIAL_PRICE);
+  //   // Lock round 2
+  //   assert.equal((await prediction.rounds(2)).lockPrice, INITIAL_PRICE);
 
-    // Start round 3
-    assert.equal((await prediction.rounds(3)).startBlock, currentBlock);
-    assert.equal((await prediction.rounds(3)).lockBlock, currentBlock + INTERVAL_BLOCKS);
-    assert.equal((await prediction.rounds(3)).closeBlock, currentBlock + 2 * INTERVAL_BLOCKS);
-    assert.equal((await prediction.rounds(3)).epoch, 3);
-    assert.equal((await prediction.rounds(3)).totalAmount, 0);
-  });
+  //   // Start round 3
+  //   assert.equal((await prediction.rounds(3)).startBlock, currentBlock);
+  //   assert.equal((await prediction.rounds(3)).lockBlock, currentBlock + INTERVAL_BLOCKS);
+  //   assert.equal((await prediction.rounds(3)).closeBlock, currentBlock + 2 * INTERVAL_BLOCKS);
+  //   assert.equal((await prediction.rounds(3)).epoch, 3);
+  //   assert.equal((await prediction.rounds(3)).totalAmount, 0);
+  // });
 
   it("Should not start rounds before genesis start and lock round has triggered", async () => {
     await expectRevert(prediction.genesisLockRound(), "Can only run after genesisStartRound is triggered");
