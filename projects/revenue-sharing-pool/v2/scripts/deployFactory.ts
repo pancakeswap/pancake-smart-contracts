@@ -26,7 +26,6 @@ const main = async () => {
     // Wait for the contract to be deployed before exiting the script.
     await contract.deployed();
     console.log(`Deployed to ${contract.address}`);
-
   } else {
     console.log(`Deploying to ${networkName} network is not supported...`);
   }
