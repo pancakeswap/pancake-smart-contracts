@@ -1,0 +1,24 @@
+{
+  "name": "vecake-farm-booster-v3",
+  "version": "1.0.0",
+  "description": "Pancake vecake farm booster v3",
+  "private": true,
+  "repository": "",
+  "author": "PancakeSwap",
+  "license": "MIT",
+  "scripts": {
+    "format:check": "prettier --check './**/*.{js,ts,sol}'",
+    "format:write": "prettier --write './**/*.{js,ts,sol}'",
+    "test": "npx hardhat test",
+    "compile": "npx hardhat compile",
+    "size": "npx hardhat size-contracts",
+    "deploy:testnet": "npx hardhat run --network testnet scripts/deploy.ts",
+    "deploy:mainnet": "npx hardhat run --network mainnet scripts/deploy.ts"
+  },
+  "devDependencies": {
+  },
+  "dependencies": {
+    "@openzeppelin-4.5.0/contracts": "npm:@openzeppelin/contracts@4.5.0",
+    "@nomiclabs-2.2.2/hardhat-ethers": "npm:@nomiclabs/hardhat-ethers@^2.2.2"
+}
+}
