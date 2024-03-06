@@ -1,0 +1,26 @@
+{
+    "name": "pancake-revenue-sharing-pool-v1",
+    "description": "Pancake Revenue Sharing Pool V1",
+    "main": "index.js",
+    "version": "1.0.0",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+        "compile": "npx hardhat compile",
+        "deploy:testnet": "npx hardhat run --network testnet scripts/deploy.ts",
+        "deploy_factory:testnet": "npx hardhat run --network testnet scripts/deployFactory.ts",
+        "deploy:mainnet": "npx hardhat run --network mainnet scripts/deploy.ts",
+        "deploy_factory:mainnet": "npx hardhat run --network mainnet scripts/deployFactory.ts",
+        "deploy_keeper:mainnet": "npx hardhat run --network mainnet scripts/deployKeeper.ts",
+        "test": "npx hardhat test",
+        "test:coverage": "npx hardhat coverage",
+        "test:size-contracts": "npx hardhat size-contracts"
+    },
+    "devDependencies": {
+        "@chainlink/contracts": "^0.6.1"
+    },
+    "dependencies": {
+        "@openzeppelin-4.5.0/contracts": "npm:@openzeppelin/contracts@4.5.0",
+        "@nomiclabs-2.2.2/hardhat-ethers": "npm:@nomiclabs/hardhat-ethers@^2.2.2"
+    }
+}

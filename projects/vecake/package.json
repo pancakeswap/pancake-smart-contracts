@@ -1,0 +1,16 @@
+{
+    "name": "vecake",
+    "description": "Pancake vecake",
+    "main": "index.js",
+    "version": "1.0.0",
+    "license": "MIT",
+    "private": true,
+    "scripts": {
+        "compile": "npx hardhat compile",
+        "test": "npx hardhat test"
+    },
+    "dependencies": {
+        "@openzeppelin-4.5.0/contracts": "npm:@openzeppelin/contracts@4.5.0",
+        "@nomiclabs-2.2.2/hardhat-ethers": "npm:@nomiclabs/hardhat-ethers@^2.2.2"
+    }
+}
