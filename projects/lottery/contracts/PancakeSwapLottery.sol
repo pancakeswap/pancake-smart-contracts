@@ -23,6 +23,8 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
     uint256 public currentLotteryId;
     uint256 public currentTicketId;
 
+    bool public isPaused;
+
     uint256 public maxNumberTicketsPerBuyOrClaim = 100;
 
     uint256 public maxPriceTicketInCake = 50 ether;
@@ -79,6 +81,11 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
     // Keep track of user ticket ids for a given lotteryId
     mapping(address => mapping(uint256 => uint256[])) private _userTicketIdsPerLotteryId;
 
+    modiifer notPaused() {
+        require(!isPaused, "Conract paused");
+        _;
+    }
+
     modifier notContract() {
         require(!_isContract(msg.sender), "Contract not allowed");
         require(msg.sender == tx.origin, "Proxy contract not allowed");
@@ -131,6 +138,16 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         _bracketCalculator[5] = 111111;
     }
 
+    function pauseContract() public onlyOwnerOrInjector returns (bool) {
+        isPaused = true;
+        return true;
+    }
+
+    function startContract() public onlyOwnerOrInjector returns (bool) {
+        isPaused = false;
+        return true;
+    }
+
     /**
      * @notice Buy tickets for the current lottery
      * @param _lotteryId: lotteryId
@@ -142,6 +159,7 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         override
         notContract
         nonReentrant
+        notPaused
     {
         require(_ticketNumbers.length != 0, "No ticket specified");
         require(_ticketNumbers.length <= maxNumberTicketsPerBuyOrClaim, "Too many tickets");
@@ -196,7 +214,7 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         uint256 _lotteryId,
         uint256[] calldata _ticketIds,
         uint32[] calldata _brackets
-    ) external override notContract nonReentrant {
+    ) external override notContract nonReentrant notPaused {
         require(_ticketIds.length == _brackets.length, "Not same length");
         require(_ticketIds.length != 0, "Length must be >0");
         require(_ticketIds.length <= maxNumberTicketsPerBuyOrClaim, "Too many tickets");
@@ -244,7 +262,7 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
      * @param _lotteryId: lottery id
      * @dev Callable by operator
      */
-    function closeLottery(uint256 _lotteryId) external override onlyOperator nonReentrant {
+    function closeLottery(uint256 _lotteryId) external override onlyOperator nonReentrant notPaused {
         require(_lotteries[_lotteryId].status == Status.Open, "Lottery not open");
         require(block.timestamp > _lotteries[_lotteryId].endTime, "Lottery not over");
         _lotteries[_lotteryId].firstTicketIdNextLottery = currentTicketId;
@@ -268,6 +286,7 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         override
         onlyOperator
         nonReentrant
+        notPaused
     {
         require(_lotteries[_lotteryId].status == Status.Close, "Lottery not close");
         require(_lotteryId == randomGenerator.viewLatestLotteryId(), "Numbers not drawn");
@@ -370,7 +389,7 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
      * @param _amount: amount to inject in CAKE token
      * @dev Callable by owner or injector address
      */
-    function injectFunds(uint256 _lotteryId, uint256 _amount) external override onlyOwnerOrInjector {
+    function injectFunds(uint256 _lotteryId, uint256 _amount) external override onlyOwnerOrInjector notPaused {
         require(_lotteries[_lotteryId].status == Status.Open, "Lottery not open");
 
         cakeToken.safeTransferFrom(address(msg.sender), address(this), _amount);
@@ -394,7 +413,7 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
         uint256 _discountDivisor,
         uint256[6] calldata _rewardsBreakdown,
         uint256 _treasuryFee
-    ) external override onlyOperator {
+    ) external override onlyOperator notPaused {
         require(
             (currentLotteryId == 0) || (_lotteries[currentLotteryId].status == Status.Claimable),
             "Not time to start lottery"
@@ -459,7 +478,7 @@ contract PancakeSwapLottery is ReentrancyGuard, IPancakeSwapLottery, Ownable {
      * @param _tokenAmount: the number of token amount to withdraw
      * @dev Only callable by owner.
      */
-    function recoverWrongTokens(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
+    function recoverWrongTokens(address _tokenAddress, uint256 _tokenAmount) external onlyOwner notPaused {
         require(_tokenAddress != address(cakeToken), "Cannot be CAKE token");
 
         IERC20(_tokenAddress).safeTransfer(address(msg.sender), _tokenAmount);
